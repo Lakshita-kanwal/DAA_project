@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Student Data | Grouping System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="page-header">
+        <h1>Student Grouping System</h1>
+    </header>
+
+    <main class="upload-area">
+        <div class="upload-center-wrapper">
+            <section class="upload-card">
+                <h2>Upload Your Student Data</h2>
+                <p class="instructions">
+                    Please upload a CSV file containing student information.
+                </p>
+
+                <form action="/process-groups" method="POST" enctype="multipart/form-data" class="upload-form">
+                    <div class="form-section">
+                        <label for="student_data_file" class="file-label">
+                            <span class="file-button">Choose CSV File</span>
+                            <span id="file-name" class="file-display">No file selected</span>
+                            <input type="file" id="student_data_file" name="student_data_file" accept=".csv" required>
+                        </label>
+                        <p class="file-help">
+                            File should include: Student ID, Name, Email, GPA, Residence Type, and Specialisation
+                        </p>
+                    </div>
+
+                    <div class="form-section">
+                        <input type="checkbox" id="overwrite_data" name="overwrite_data">
+                        <label for="overwrite_data">Replace existing student data</label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="process-button">
+                            Create Student Groups
+                        </button>
+                        <a href="/" class="cancel-link">Cancel</a>
+                    </div>
+                </form>
+            </section>
+
+            <section class="sample-section">
+                <h3>Need Help Formatting Your File?</h3>
+                <div class="sample-card">
+                    <h4>Example CSV Format</h4>
+                    <pre class="sample-data">
+student_id,full_name,email_address,gpa,residence_type,study_focus
+S001,Kiran Fartiyal,KiranFartiyal@example.com,7.8,Hosteller,Web Dev
+S002,Jyoti Bisht,JyotiBisht@example.com,8.5,Hosteller,Cloud
+S003,Lakshita Kanwal,LakshitaKanwal@example.com,9.2,Dayscholar,AI
+                    </pre>
+                    <a href="/static/samples/student_data_sample.csv" download class="download-sample">
+                        Download Sample File
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="page-footer">
+        <p>Student Grouping System &copy; 2023 | University Department</p>
+    </footer>
+
+    <script>
+        // Show selected filename to user
+        document.getElementById('student_data_file').addEventListener('change', function(e) {
+            const fileNameDisplay = document.getElementById('file-name');
+            const files = e.target.files;
+            fileNameDisplay.textContent = files.length ? files[0].name : 'No file selected';
+        });
+    </script>
+</body>
+</html>

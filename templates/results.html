@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grouping Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Grouping Results</h1>
+        <div class="groups-container">
+            {% for group_name, members in groups.items() %}
+            <div class="group">
+                <h3>{{ group_name }}</h3>
+                <ul>
+                    {% for member_id in members %}
+                    <li>
+                        {{ member_id }} - {{ id_to_name[member_id] }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="/" class="btn">Upload New Data</a>
+        <button onclick="window.history.back()" class="btn">Back</button>
+    </div>
+</body>
+</html>
