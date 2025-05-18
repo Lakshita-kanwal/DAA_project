@@ -1,0 +1,11 @@
+student_id,name,email,cgpa,residence,interest
+S001,Laskhita Kanwal,lakshitakanwal25@gmail.com,7.8,Hosteller,Web Dev
+S002,Jyoti Bisht,jyotibisht72029@gmail.com,8.5,Hosteller,Cloud
+S003,Kiran Fartiyal,kiranfartiyal80@gmail.com,9.2,Dayscholar,Cybersecurity
+S004,Dhyanesh Dwivedi,dhyaneshdw.111@gmail.com,7.0,Hosteller,AI
+S005,Yogesh Chandra,yogeshchandra7505@gmail.com,9.4,Dayscholar,Web Dev
+S006,Bhawana Adhikari,jyotibisht72029@gmail.com,8.0,Dayscholar,Cloud
+S007,Srishti Rautela,jyotibisht72029@gmail.com,6.4,Hosteller,Cybersecurity
+S008,Lakshita Bisht,lakshitabisht2029@gmail.com,6.9,Hosteller,AI
+S009,Himani,jyotibisht72029@gmail.com,9.3,Dayscholar,Web Dev
+S010,Bhavesh,jyotibisht72029@gmail.com,7.9,Dayscholar,AI
