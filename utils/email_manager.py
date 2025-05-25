@@ -1,56 +1,59 @@
 """
 Email Notification System
-Handles all communication with students about their group assignments
+
 """
 
+import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from config import EmailConfig
 
 def notify_students(student_data, groups_assigned, is_initial_setup):
-    """
-    Manages all email notifications to students:
-    - First run: Notify everyone about their new groups
-    - Subsequent runs: Only notify students whose groups changed
-    """
+    print("[INFO] notify_students() called")
+    
     student_group_map = create_student_group_mapping(groups_assigned)
     
-    # On initial setup, notify all students
+    # Determine students to notify
     if is_initial_setup:
         students_to_notify = student_data
+        print(f"[INFO] Initial setup: notifying all {len(students_to_notify)} students")
     else:
-        # Only notify students whose group has changed
         students_to_notify = []
         for student in student_data:
             prev_group = student.get('previous_group_id')
             new_group = None
-            # Find new group id from mapping
             group_info = student_group_map.get(student['id'])
             if group_info:
                 new_group = group_info['group_name']
-            # Compare previous and new group
             if prev_group != new_group:
                 students_to_notify.append(student)
-    
+        print(f"[INFO] Group change mode: notifying {len(students_to_notify)} students")
+
+    # If no students need to be notified
+    if not students_to_notify:
+        print("[WARNING] No students to notify. Exiting email step.")
+        return
+
+    # Setup Gmail API
+    gmail_service = setup_gmail_service()
+
     # Send emails
-    mail_server = setup_email_connection()
-    try:
-        for student in students_to_notify:
-            try:
-                prepare_and_send_email(
-                    student,
-                    student_group_map,
-                    is_initial_setup,
-                    mail_server
-                )
-            except Exception as e:
-                print(f"Failed to send email to {student['email']}: {e}")
-    finally:
-        mail_server.quit()
+    for student in students_to_notify:
+        try:
+            prepare_and_send_email(
+                student,
+                student_group_map,
+                is_initial_setup,
+                gmail_service
+            )
+            print(f"[✅] Email sent to {student['email']}")
+        except Exception as e:
+            print(f"[❌] Failed to send email to {student['email']}: {e}")
+
 
 def create_student_group_mapping(groups):
-    """Creates a dictionary mapping student IDs to their group names"""
+
     mapping = {}
     
     for group_name, members in groups.items():
@@ -62,33 +65,41 @@ def create_student_group_mapping(groups):
     
     return mapping
 
-def setup_email_connection():
-    """Establishes connection with SMTP server"""
-    server = smtplib.SMTP(EmailConfig.SMTP_SERVER, EmailConfig.SMTP_PORT)
-    server.set_debuglevel(1)
-    server.starttls()
-    server.login(EmailConfig.SENDER_EMAIL, EmailConfig.SENDER_PASSWORD)
-    return server
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
 
-def prepare_and_send_email(student, group_map, is_initial, server):
-    """Prepares and sends individual email to each student"""
-    
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+
+def setup_gmail_service():
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    return build('gmail', 'v1', credentials=creds)
+
+import base64
+from email.message import EmailMessage
+
+def prepare_and_send_email(student, group_map, is_initial, gmail_service):
     student_id = student['id']
     student_info = group_map.get(student_id)
-    
-    # Skip if student isn't in any group (shouldn't happen)
+
     if not student_info:
         return
 
-    # Get names of group members (excluding the student)
     member_ids = student_info['members']
-    # You need a mapping from student_id to name
-    # Let's assume you pass it as student['id_to_name'] (update call accordingly)
     id_to_name = student.get('id_to_name', {})
     member_names = [id_to_name.get(mid, mid) for mid in member_ids]
     members_display = "\n".join(f"{mid} - {name}" for mid, name in zip(member_ids, member_names))
 
-    # Prepare email content based on situation
     if is_initial:
         email_content = EmailConfig.NEW_GROUP_TEMPLATE.format(
             student_name=student['name'],
@@ -101,15 +112,14 @@ def prepare_and_send_email(student, group_map, is_initial, server):
             group_name=student_info['group_name'],
             team_members=members_display
         )
-    
-    # Create email message
-    message = MIMEMultipart()
-    message['From'] = EmailConfig.SENDER_EMAIL
+
+    message = EmailMessage()
+    message.set_content(email_content)
     message['To'] = student['email']
+    message['From'] = EmailConfig.SENDER_EMAIL
     message['Subject'] = "Your Project Group Assignment"
-    
-    # Attach our formatted message
-    message.attach(MIMEText(email_content, 'plain'))
-    
-    # Send the email
-    server.send_message(message)
+
+    encoded_msg = base64.urlsafe_b64encode(message.as_bytes()).decode()
+    send_msg = {'raw': encoded_msg}
+
+    gmail_service.users().messages().send(userId="me", body=send_msg).execute()
