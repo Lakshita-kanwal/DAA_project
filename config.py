@@ -1,8 +1,4 @@
-"""
-System Configuration Settings
-Centralised location for all configurable parameters
-Uses environment variables for sensitive credentials
-"""
+#System Configuration Settings
 
 import os
 from pathlib import Path
@@ -13,7 +9,7 @@ env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
 class AppConfig:
-    """Main application configuration"""
+    #Main application configuration
     
     # Application settings
     DEBUG_MODE = os.getenv('DEBUG_MODE', 'False') == 'True'
@@ -32,7 +28,7 @@ class AppConfig:
     }
 
 class DatabaseConfig:
-    """Database connection settings"""
+    #Database connection settings
     
     HOST = os.getenv('DB_HOST', 'localhost')
     USERNAME = os.getenv('DB_USER', 'root')
@@ -52,12 +48,9 @@ class DatabaseConfig:
         }
 
 class EmailConfig:
-    """Email notification settings"""
+    #Email notification settings
     
-    SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.university.edu')
-    SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
     SENDER_EMAIL = os.getenv('SENDER_EMAIL', 'groups@university.edu')
-    SENDER_PASSWORD = os.getenv('SENDER_PASSWORD', '')
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@university.edu')
     
     # Email templates
